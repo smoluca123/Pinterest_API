@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Pinterest API')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
