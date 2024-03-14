@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model auth_code {
+  code_id Int     @id @default(autoincrement())
+  code    String? @db.VarChar(255)
+}
+
 model comments {
   cmt_id  Int       @id @default(autoincrement())
   user_id Int?

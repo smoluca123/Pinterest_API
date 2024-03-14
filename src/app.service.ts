@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from './prisma/prisma.service';
 
 type ApiInfo = {
   token?: string;
@@ -12,10 +13,14 @@ type ApiInfo = {
 
 @Injectable()
 export class AppService {
-  constructor(private readonly jwtService: JwtService) {}
-  getInfo(): ApiInfo {
+  constructor(
+    private readonly jwtService: JwtService,
+    private prisma: PrismaService,
+  ) {}
+  async getInfo(): Promise<ApiInfo> {
+    const authCode = await this.prisma.auth_code.findFirst({});
     return {
-      token: this.jwtService.sign({}),
+      token: this.jwtService.sign({ code: authCode.code }),
       name: 'Pinterest',
       version: '1.0.0',
       description: 'Capstone Pinterest API',

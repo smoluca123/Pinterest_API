@@ -7,6 +7,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfigService } from './jwt/jwt-config.service';
+import { PrismaService } from './prisma/prisma.service';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { JwtConfigService } from './jwt/jwt-config.service';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    PrismaService,
   ],
 })
 export class AppModule {}
