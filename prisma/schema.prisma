@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model comments {
+  cmt_id  Int       @id @default(autoincrement())
+  user_id Int?
+  img_id  Int?
+  date    DateTime? @db.Date
+  content String?   @db.VarChar(255)
+  images  images?   @relation(fields: [img_id], references: [img_id], onDelete: NoAction, onUpdate: NoAction, map: "comments_img_id")
+  users   users?    @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: Restrict, map: "comments_user_id")
+
+  @@index([img_id], map: "comments_img_id")
+  @@index([user_id], map: "comments_user_id")
+}
+
+model images {
+  img_id   Int        @id @default(autoincrement())
+  name     String     @db.VarChar(255)
+  url      String     @db.VarChar(500)
+  desc     String     @db.VarChar(500)
+  user_id  Int
+  comments comments[]
+  users    users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "user_id")
+  save_img save_img[] @ignore
+
+  @@index([user_id], map: "user_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model save_img {
+  user_id Int?
+  img_id  Int?
+  date    DateTime? @db.Date
+  images  images?   @relation(fields: [img_id], references: [img_id], onDelete: NoAction, onUpdate: NoAction, map: "saveimg_img_id")
+  users   users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "saveimg_user_id")
+
+  @@index([img_id], map: "saveimg_img_id")
+  @@index([user_id], map: "saveimg_user_id")
+  @@ignore
+}
+
+model users {
+  user_id   Int        @id
+  email     String?    @db.VarChar(255)
+  password  String     @db.VarChar(255)
+  full_name String     @db.VarChar(255)
+  age       Int?
+  avatar    String?    @db.VarChar(255)
+  comments  comments[]
+  images    images[]
+  save_img  save_img[] @ignore
+}
