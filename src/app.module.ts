@@ -7,7 +7,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfigService } from './jwt/jwt-config.service';
-import { PrismaService } from './prisma/prisma.service';
+import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { MediaModule } from './media/media.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -22,6 +25,10 @@ import { PrismaService } from './prisma/prisma.service';
         limit: 10,
       },
     ]),
+    PrismaModule,
+    AuthModule,
+    MediaModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [
@@ -31,7 +38,6 @@ import { PrismaService } from './prisma/prisma.service';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    PrismaService,
   ],
 })
 export class AppModule {}
