@@ -11,7 +11,6 @@ import * as argon2 from 'argon2';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UserRegisterDto } from './dto/UserRegister.dto';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -42,7 +41,11 @@ export class AuthService {
         date: new Date(),
       };
     } catch (error) {
-      throw new HttpException(error.message || 'Lỗi không xác định', 500, {});
+      throw new HttpException(error.message || 'Lỗi không xác định', 400, {});
+      // if (error?.message) {
+      //   throw new BadRequestException({ message: error.message, error });
+      // }
+      // throw error;
     }
   }
 
@@ -79,30 +82,7 @@ export class AuthService {
         date: new Date(),
       };
     } catch (error) {
-      throw error;
-    }
-  }
-
-  async getUserInfo(accessToken: string): Promise<ResponseType> {
-    try {
-      const decoded = await this.jwtService.decode(accessToken);
-      const { id: user_id } = decoded;
-      const userData = await this.prisma.users.findFirst({
-        where: {
-          user_id,
-        },
-      });
-
-      //eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _pw, ...result } = userData;
-      return {
-        message: 'Success',
-        data: result,
-        statusCode: 200,
-        date: new Date(),
-      };
-    } catch (error) {
-      throw error;
+      throw new HttpException(error.message || 'Lỗi không xác định', 400, {});
     }
   }
 }
