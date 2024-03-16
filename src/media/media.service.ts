@@ -1,7 +1,13 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CommentImageDto } from './dto/CommentImage.dto';
 
 @Injectable()
 export class MediaService {
@@ -187,6 +193,68 @@ export class MediaService {
         data: {
           saved: true,
         },
+        date: new Date(),
+      };
+    } catch (error) {
+      throw new HttpException(error.message || 'Lỗi không xác định', 400);
+    }
+  }
+
+  async commentImage(
+    accessToken: string,
+    commentImageDto: CommentImageDto,
+  ): Promise<ResponseType> {
+    try {
+      const { imgId: img_id, comment: content } = commentImageDto;
+
+      await this.jwt.verify(accessToken);
+      const decodedToken = this.jwt.decode(accessToken);
+      const { id: user_id } = decodedToken;
+      if (!user_id) {
+        throw new BadRequestException('Access token is missing user id');
+      }
+
+      const checkImg = await this.prisma.images.findUnique({
+        where: {
+          img_id: +img_id,
+        },
+      });
+
+      const checkUser = await this.prisma.users.findUnique({
+        where: {
+          user_id,
+        },
+      });
+
+      if (!checkImg) {
+        throw new NotFoundException('Not found image with this id');
+      }
+      if (!checkUser) {
+        throw new NotFoundException('Not found user with this id');
+      }
+
+      const newComment = await this.prisma.comments.create({
+        data: {
+          img_id: +img_id,
+          user_id,
+          content,
+          date: new Date(),
+        },
+        include: {
+          users: true,
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { user_id: _userId, users, ...commentResult } = newComment;
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userResult } = users;
+
+      return {
+        statusCode: 200,
+        message: 'Comment added successfully',
+        data: { ...commentResult, user: userResult },
         date: new Date(),
       };
     } catch (error) {

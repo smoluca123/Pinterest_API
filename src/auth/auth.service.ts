@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { UserLoginDto } from './dto/UserLogin.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as argon2 from 'argon2';
+import * as bcrypt from 'bcrypt';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UserRegisterDto } from './dto/UserRegister.dto';
@@ -28,7 +28,7 @@ export class AuthService {
         throw new NotFoundException('User not found');
       }
 
-      if (!(await argon2.verify(checkUser.password, password))) {
+      if (!bcrypt.compareSync(password, checkUser.password)) {
         throw new UnauthorizedException('Wrong password');
       }
       const token = this.jwtService.sign({ id: checkUser.user_id });
@@ -58,7 +58,7 @@ export class AuthService {
       if (checkUser) {
         throw new ConflictException('Email already exists');
       }
-      const hashedPassword = await argon2.hash(password);
+      const hashedPassword = bcrypt.hashSync(password, 10);
       const user = await this.prisma.users.create({
         data: {
           email,

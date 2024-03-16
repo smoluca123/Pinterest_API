@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   Headers,
   Param,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -10,6 +12,7 @@ import { MediaService } from './media.service';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { CommentImageDto } from './dto/CommentImage.dto';
 
 @ApiTags('Media Management')
 @ApiBearerAuth()
@@ -55,5 +58,15 @@ export class MediaController {
     @Headers('accessToken') accessToken: string,
   ): Promise<ResponseType> {
     return this.mediaService.isImgSavedById(+imgId, accessToken);
+  }
+
+  @Post('/comment-image/')
+  commentImage(
+    @Headers('accessToken') accessToken: string,
+    // @Query('imgId') imgId: string,
+    // @Query('comment') comment: string,
+    @Body() commentImageDto: CommentImageDto,
+  ) {
+    return this.mediaService.commentImage(accessToken, commentImageDto);
   }
 }
