@@ -18,10 +18,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const { code } = payload;
+    const { codeId: code_id, code } = payload;
     const checkCode = await this.prisma.auth_code.findFirst({
       where: {
-        code: code,
+        code_id,
+        code,
       },
     });
     if (!checkCode) {

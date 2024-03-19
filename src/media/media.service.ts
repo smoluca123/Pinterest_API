@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CommentImageDto } from './dto/CommentImage.dto';
+import { UploadFileDto } from './dto/UploadImage.dto';
 
 @Injectable()
 export class MediaService {
@@ -49,7 +50,6 @@ export class MediaService {
     try {
       page = page ? page : 1;
       limit = limit ? limit : 3;
-      const count = await this.prisma.images.count();
       const images = await this.prisma.images.findMany({
         where: {
           name: {
@@ -59,6 +59,7 @@ export class MediaService {
         skip: (page - 1) * limit,
         take: limit,
       });
+      const count = images.length;
       return {
         statusCode: 200,
         message: 'Images fetched successfully',
@@ -255,6 +256,162 @@ export class MediaService {
         statusCode: 200,
         message: 'Comment added successfully',
         data: { ...commentResult, user: userResult },
+        date: new Date(),
+      };
+    } catch (error) {
+      throw new HttpException(error.message || 'Lỗi không xác định', 400);
+    }
+  }
+
+  async getSavedImageByUser(accessToken: string): Promise<ResponseType> {
+    try {
+      if (!accessToken) {
+        throw new BadRequestException('Access token is required');
+      }
+      await this.jwt.verify(accessToken);
+      const decodedToken = this.jwt.decode(accessToken);
+      const { id: user_id } = decodedToken;
+      if (!user_id) {
+        throw new BadRequestException('Access token is missing user id');
+      }
+      const savedImages = await this.prisma.save_img.findMany({
+        where: {
+          user_id,
+        },
+        include: {
+          images: true,
+        },
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Saved images fetched successfully',
+        data: savedImages,
+        date: new Date(),
+      };
+    } catch (error) {
+      throw new HttpException(error.message || 'Lỗi không xác định', 400);
+    }
+  }
+
+  async getImagesCreatedByUser(accessToken: string): Promise<ResponseType> {
+    try {
+      if (!accessToken) {
+        throw new BadRequestException('Access token is required');
+      }
+      await this.jwt.verify(accessToken);
+      const decodedToken = this.jwt.decode(accessToken);
+      const { id: user_id } = decodedToken;
+      if (!user_id) {
+        throw new BadRequestException('Access token is missing user id');
+      }
+      const user = await this.prisma.users.findUnique({
+        where: {
+          user_id,
+        },
+      });
+      if (!user) {
+        throw new NotFoundException('Not found user with this id');
+      }
+
+      const images = await this.prisma.images.findMany({
+        where: {
+          user_id,
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _pw, ...userResult } = user;
+
+      return {
+        statusCode: 200,
+        message: 'Images fetched successfully',
+        data: {
+          user: userResult,
+          imagesCreated: images,
+        },
+        date: new Date(),
+      };
+    } catch (error) {
+      throw new HttpException(error.message || 'Lỗi không xác định', 400);
+    }
+  }
+
+  async uploadImage(
+    accessToken: string,
+    file: Express.Multer.File,
+    uploadFileDto: UploadFileDto,
+  ): Promise<ResponseType> {
+    try {
+      if (!accessToken) {
+        throw new BadRequestException('Access token is required');
+      }
+      if (!file) {
+        throw new BadRequestException('No file uploaded');
+      }
+
+      await this.jwt.verify(accessToken);
+      const decodedToken = this.jwt.decode(accessToken);
+      const { id: user_id } = decodedToken;
+      if (!user_id) {
+        throw new BadRequestException('Access token is missing user id');
+      }
+      const user = await this.prisma.users.findUnique({
+        where: {
+          user_id,
+        },
+      });
+      if (!user) {
+        throw new NotFoundException('Not found user with this id');
+      }
+
+      const { name, desc } = uploadFileDto;
+
+      const newImage = await this.prisma.images.create({
+        data: {
+          user_id,
+          name,
+          desc,
+          url: `/img/${file.filename}`,
+        },
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Image uploaded successfully',
+        data: {
+          newImage,
+        },
+        date: new Date(),
+      };
+    } catch (error) {
+      throw new HttpException(error.message || 'Lỗi không xác định', 400);
+    }
+  }
+
+  async deleteImage(imgId: number): Promise<ResponseType> {
+    try {
+      if (!imgId) {
+        throw new BadRequestException('Image id is empty or invalid');
+      }
+      const checkImg = await this.prisma.images.findUnique({
+        where: {
+          img_id: imgId,
+        },
+      });
+      if (!checkImg) {
+        throw new NotFoundException('Not found image with this id');
+      }
+
+      await this.prisma.images.delete({
+        where: {
+          img_id: imgId,
+        },
+      });
+      return {
+        statusCode: 200,
+        message: 'Image deleted successfully',
+        data: {},
         date: new Date(),
       };
     } catch (error) {

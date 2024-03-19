@@ -8,7 +8,7 @@ type ApiInfo = {
   version: string;
   description: string;
   swagger: string;
-  author: string[];
+  author: string;
 };
 
 @Injectable()
@@ -20,12 +20,15 @@ export class AppService {
   async getInfo(): Promise<ApiInfo> {
     const authCode = await this.prisma.auth_code.findFirst({});
     return {
-      authorizationToken: this.jwtService.sign({ code: authCode.code }),
+      authorizationToken: this.jwtService.sign({
+        codeId: authCode.code_id,
+        code: authCode.code,
+      }),
       name: 'Pinterest',
       version: '1.0.0',
       description: 'Capstone Pinterest API',
       swagger: '/swagger',
-      author: ['Luca Dev', 'Phương Tây'],
+      author: 'Luca Dev',
     };
   }
 }
