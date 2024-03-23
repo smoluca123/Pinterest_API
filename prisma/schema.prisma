@@ -7,9 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model auth_code {
   code_id Int     @id @default(autoincrement())
   code    String? @db.VarChar(255)
+  isAdmin Int?
 }
 
 model comments {
@@ -50,6 +52,13 @@ model save_img {
   @@index([user_id], map: "saveimg_user_id")
 }
 
+model type_user {
+  type_id   Int     @id @default(autoincrement())
+  type_name String? @db.VarChar(255)
+  isAdmin   Int?
+  users     users[]
+}
+
 model users {
   user_id   Int        @id @default(autoincrement())
   email     String?    @db.VarChar(255)
@@ -57,7 +66,11 @@ model users {
   full_name String     @db.VarChar(255)
   age       Int?
   avatar    String?    @db.VarChar(255)
+  type      Int        @default(1)
   comments  comments[]
   images    images[]
   save_img  save_img[]
+  type_user type_user  @relation(fields: [type], references: [type_id], onUpdate: Restrict, map: " type_user")
+
+  @@index([type], map: " type_user")
 }
