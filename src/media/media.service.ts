@@ -144,6 +144,66 @@ export class MediaService {
     }
   }
 
+  async saveImage(accessToken: string, imgId: number): Promise<ResponseType> {
+    try {
+      if (!accessToken) {
+        throw new BadRequestException('Access token is required');
+      }
+      if (!imgId) {
+        throw new BadRequestException('Image id is empty or invalid');
+      }
+      const decoded = await this.jwt.decode(accessToken);
+      const { id: user_id } = decoded;
+      if (!user_id) {
+        throw new BadRequestException('Access token is missing user id');
+      }
+      const checkImage = await this.prisma.images.findUnique({
+        where: {
+          img_id: imgId,
+        },
+      });
+      if (!checkImage) {
+        throw new NotFoundException('Image not found');
+      }
+
+      const checkSaveImg = await this.prisma.save_img.findFirst({
+        where: {
+          user_id,
+          img_id: imgId,
+        },
+      });
+
+      if (checkSaveImg) {
+        await this.prisma.save_img.delete({
+          where: {
+            id: checkSaveImg.id,
+          },
+        });
+        return {
+          statusCode: 200,
+          data: {},
+          message: 'Image was successfully unsaved',
+          date: new Date(),
+        };
+      }
+      await this.prisma.save_img.create({
+        data: {
+          user_id,
+          img_id: imgId,
+          date: new Date(),
+        },
+      });
+      return {
+        statusCode: 200,
+        data: {},
+        message: 'Image saved successfully',
+        date: new Date(),
+      };
+    } catch (error) {
+      throw new HttpException(error.message || 'L��i không xác đ��nh', 400);
+    }
+  }
+
   async isImgSavedById(
     imgId: number,
     accessToken: string,
@@ -401,6 +461,24 @@ export class MediaService {
       });
       if (!checkImg) {
         throw new NotFoundException('Not found image with this id');
+      }
+
+      const checkCmt = await this.prisma.comments.findFirst({
+        where: {
+          img_id: imgId,
+        },
+      });
+      const checkSaved = await this.prisma.save_img.findFirst({
+        where: {
+          img_id: imgId,
+        },
+      });
+
+      if (checkCmt) {
+        throw new BadRequestException('Image has comments, not delete');
+      }
+      if (checkSaved) {
+        throw new BadRequestException('Image is saved by users, not delete');
       }
 
       await this.prisma.images.delete({

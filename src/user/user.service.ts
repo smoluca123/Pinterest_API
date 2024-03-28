@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UpdateUserInfo } from './dto/UpdateUser.dto';
+import { UpdateUserInfoDto } from './dto/UpdateUser.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class UserService {
 
   async updateUserInfo(
     accessToken: string,
-    updateUserInfo: UpdateUserInfo,
+    updateUserInfo: UpdateUserInfoDto,
   ): Promise<ResponseType> {
     try {
       if (!accessToken) {
@@ -74,7 +74,9 @@ export class UserService {
         throw new NotFoundException('User not found');
       }
 
-      updateUserInfo.password = bcrypt.hashSync(updateUserInfo.password, 10);
+      if (updateUserInfo.password) {
+        updateUserInfo.password = bcrypt.hashSync(updateUserInfo.password, 10);
+      }
 
       const { age, avatar, email, fullName, password } = updateUserInfo;
 

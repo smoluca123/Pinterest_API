@@ -68,6 +68,14 @@ export class MediaController {
     return this.mediaService.getCommentsImage(+imgId);
   }
 
+  @Post('/save-image/:imgId')
+  saveImage(
+    @Headers('accessToken') accessToken: string,
+    @Param('imgId') imgId: string,
+  ): Promise<ResponseType> {
+    return this.mediaService.saveImage(accessToken, +imgId);
+  }
+
   @Get('/check-img-saved-by-id/:imgId')
   isImgSavedById(
     @Param('imgId') imgId: string,
