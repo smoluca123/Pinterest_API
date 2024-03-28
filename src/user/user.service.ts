@@ -74,7 +74,9 @@ export class UserService {
         throw new NotFoundException('User not found');
       }
 
-      updateUserInfo.password = bcrypt.hashSync(updateUserInfo.password, 10);
+      if (updateUserInfo.password) {
+        updateUserInfo.password = bcrypt.hashSync(updateUserInfo.password, 10);
+      }
 
       const { age, avatar, email, fullName, password } = updateUserInfo;
 
