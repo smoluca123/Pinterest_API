@@ -20,8 +20,8 @@ model comments {
   img_id  Int?
   date    DateTime? @db.Date
   content String?   @db.VarChar(255)
-  images  images?   @relation(fields: [img_id], references: [img_id], onDelete: NoAction, onUpdate: NoAction, map: "comments_img_id")
-  users   users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "comments_user_id")
+  images  images?   @relation(fields: [img_id], references: [img_id], onDelete: Restrict, onUpdate: Restrict, map: "comments_img_id")
+  users   users?    @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: Restrict, map: "comments_user_id")
 
   @@index([img_id], map: "comments_img_id")
   @@index([user_id], map: "comments_user_id")
@@ -34,7 +34,7 @@ model images {
   desc     String     @db.VarChar(500)
   user_id  Int
   comments comments[]
-  users    users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "img_user_id")
+  users    users      @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "img_user_id")
   save_img save_img[]
 
   @@index([user_id], map: "img_user_id")
@@ -45,7 +45,7 @@ model save_img {
   user_id Int?
   img_id  Int?
   date    DateTime? @db.Date
-  images  images?   @relation(fields: [img_id], references: [img_id], onDelete: NoAction, onUpdate: NoAction, map: "saveimg_img_id")
+  images  images?   @relation(fields: [img_id], references: [img_id], onDelete: Restrict, onUpdate: Restrict, map: "saveimg_img_id")
   users   users?    @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: Restrict, map: "saveimg_user_id")
 
   @@index([img_id], map: "saveimg_img_id")

@@ -10,7 +10,7 @@ import { UserService } from './user.service';
 import { ResponseType } from 'src/interfaces/global.interface';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { UpdateUserInfo } from './dto/UpdateUser.dto';
+import { UpdateUserInfoDto } from './dto/UpdateUser.dto';
 
 @ApiTags('User Management')
 @ApiBearerAuth()
@@ -26,14 +26,15 @@ export class UserController {
   }
 
   @ApiBody({
-    type: UpdateUserInfo,
+    type: UpdateUserInfoDto,
     description:
       'For fields that you do not want to update, leave them blank. Exp : {email: "", password: "", fullName: "", age: "", avatar: ""}',
   })
   @Put('/update-user-info')
   updateUserInfo(
-    @Headers('accessToken') accessToken: string,
-    @Body() updateUserInfo: UpdateUserInfo,
+    @Headers('accessToken')
+    accessToken: string,
+    @Body() updateUserInfo: UpdateUserInfoDto,
   ): Promise<ResponseType> {
     return this.userService.updateUserInfo(accessToken, updateUserInfo);
   }
